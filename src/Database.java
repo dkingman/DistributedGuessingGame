@@ -12,12 +12,7 @@ import static java.lang.System.getProperty;
 public class Database {
     private RandomAccessFile db;
     private final String dbDir;
-
-    private static final int RECORD_SIZE         = 300;
-    private static final int NODE_ID_SIZE        = 4;
-    private static final int CELEBRITY_NAME_SIZE = 40;
-    private static final int USERNAME_SIZE       = 10;
-    private static final int INET_ADDRESS_SIZE   = 40; // Find the correct size of the toString of an InetAddress
+    public static int recordCount = 1;
 
     public Database() {
         String currDir = getProperty("user.dir");
@@ -28,13 +23,28 @@ public class Database {
         try {
             db = new RandomAccessFile(dbDir, "rw");
             try {
-                db.seek(db.length());
-                db.write("TESTING".getBytes());
-                db.close();
+                System.out.println("DBlen = " + db.length() + " record_Size = " + Node.RECORD_SIZE);
+                db.seek(db.length()-Node.RECORD_SIZE);
+
+                // Update the record count to the 1 + the last saved ID
+                byte[] recordByte = new byte[1];
+                recordByte[0] = db.readByte();
+                recordCount = new Integer(new String(recordByte)) + 1;
             } catch (IOException e) {
                 e.printStackTrace();
+
             }
         } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void write(Node node) {
+        try {
+            db.seek(db.length());
+            db.write(node.getBytes());
+            db.close();
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
