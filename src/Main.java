@@ -19,20 +19,20 @@ public class Main {
     }
 
     private static void playGame(BufferedReader bufferedReader,Socket socket) {
-        User user = new User(socket.getInetAddress(), "Player");
-        NodeData nodeData = new NodeData(user);
-        Node root = new Node(nodeData);
+//        User user = new User(socket.getInetAddress(), "Player");
+//        NodeData nodeData = new NodeData(user);
+//        Node root = new Node(nodeData);
+        Database db = new Database();
+        db.initDb();
+    }
 
+    private Node initTree() {
         try {
             RandomAccessFile file = new RandomAccessFile("c:\\data\\file.txt", "rw");
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
-    }
-
-    private Node<NodeData> initTree() {
-        return new Node<NodeData>();
-
         //TODO init tree with data from database
+        return new Node();
     }
 }

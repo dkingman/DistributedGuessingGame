@@ -5,6 +5,8 @@
  */
 public class NodeData {
     private User userWhoAnswered;
+    private String question;
+    private String celebrity;
 
     public NodeData(User userWhoAnswered) {
         this.userWhoAnswered = userWhoAnswered;

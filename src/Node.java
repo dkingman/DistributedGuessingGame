@@ -5,10 +5,10 @@ import java.util.List;
  * Date: 2/25/13
  * Time: 10:12 PM
  */
-public class Node<NodeData> {
+public class Node {
     private Node parent;
-    private Node<NodeData> left;
-    private Node<NodeData> right;
+    private Node yes;
+    private Node no;
     private NodeData nodeData;
 
     public Node(NodeData nodeData) {
