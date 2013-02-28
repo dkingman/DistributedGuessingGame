@@ -26,20 +26,60 @@ public class Main {
 //        Node root = new Node(nodeData);
         Database db = new Database();
         db.initDb();
-
-        User user = new User(null,"JOHN BOB");
-        NodeData nodeData = new NodeData(user, "Is the celebrity Barrack Obama?", null);
-        Node node = new Node(null,null,null,nodeData,Database.recordCount++);
-        db.write(node);
+        play(new Node(), bufferedReader);
     }
 
-    private Node initTree() {
-        try {
-            RandomAccessFile file = new RandomAccessFile("c:\\data\\file.txt", "rw");
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
+    private static void play(Node node, BufferedReader bufferedReader) {
+        String response = null;
+        String celebrity = node.getNodeData().getCelebrity();
+        String question = node.getNodeData().getQuestion();
+        if(celebrity != null) {
+            do {
+                System.out.println(new StringBuilder().append("Is the celebrity you are thinking of ").append(celebrity).append("?").toString());
+                try {
+                    response = bufferedReader.readLine();
+                    if(answeredYes(response)) {
+                        System.out.println("I knew it!");
+                        break;
+                    } else if(answeredNo(response)) {
+
+                        break;
+                    } else {
+                        System.out.println("Didn't understand response, please try again.");
+                    }
+                }  catch (IOException e1) {
+                    e1.printStackTrace();
+                }
+            }
+            while(true);
         }
-        //TODO init tree with data from database
-        return new Node();
+         else if(question != null) {
+            System.out.println(question);
+            do {
+                try {
+                    response = bufferedReader.readLine();
+                    if(answeredYes(response)) {
+                        play(node.getYes(),bufferedReader);
+                        break;
+                    } else if (answeredNo(response)) {
+                        play(node.getNo(),bufferedReader);
+                        break;
+                    } else {
+                        System.out.println("Didn't understand response, please try again.");
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            while(true);
+        }
+    }
+
+    private static boolean answeredYes(String answer) {
+        return answer.toLowerCase().equals('y') || answer.toLowerCase().equals("yes");
+    }
+
+    private static boolean answeredNo(String answer) {
+        return answer.toLowerCase().equals('n') || answer.toLowerCase().equals("no");
     }
 }

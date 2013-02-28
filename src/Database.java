@@ -23,13 +23,21 @@ public class Database {
         try {
             db = new RandomAccessFile(dbDir, "rw");
             try {
-                System.out.println("DBlen = " + db.length() + " record_Size = " + Node.RECORD_SIZE);
-                db.seek(db.length()-Node.RECORD_SIZE);
+                if(db.length() == 0) {
+                    User user = new User(null,"Initial User");
+                    NodeData nodeData = new NodeData(user, null, "Barrack Obama");
+                    Node node = new Node(null,null,null,nodeData,Database.recordCount);
+                    write(node);
+                } else {
+                    // Update record count to the id of the last saved node
+                    db.seek(db.length()-Node.RECORD_SIZE);
+                    byte[] recordByte = new byte[1];
+                    recordByte[0] = db.readByte();
+                    recordCount = new Integer(new String(recordByte)) + 1;
+
+                }
 
                 // Update the record count to the 1 + the last saved ID
-                byte[] recordByte = new byte[1];
-                recordByte[0] = db.readByte();
-                recordCount = new Integer(new String(recordByte)) + 1;
             } catch (IOException e) {
                 e.printStackTrace();
 

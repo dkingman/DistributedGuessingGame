@@ -7,14 +7,14 @@ import java.util.List;
  */
 public class Node {
     private Node parent;
+
     private Node yes;
     private Node no;
     private NodeData nodeData;
     private Integer id;
     private static final int NODE_ID_SIZE = 4;
-    private static final int NODE_SIZE    = (NODE_ID_SIZE + NodeData.RECORD_SIZE)*4;;
-    public static final int RECORD_SIZE   = NODE_SIZE * 4;
-
+    private static final int NODE_SIZE    = NODE_ID_SIZE + NodeData.RECORD_SIZE;;
+    public static final int RECORD_SIZE   = NODE_ID_SIZE * 3 + NODE_SIZE;
     Node(Node parent, Node yes, Node no, NodeData nodeData, Integer id) {
         this.parent = parent;
         this.yes = yes;
@@ -46,12 +46,36 @@ public class Node {
         this.nodeData = nodeData;
     }
 
+    public Node getParent() {
+        return parent;
+    }
+
+    public void setParent(Node parent) {
+        this.parent = parent;
+    }
+
+    public Node getYes() {
+        return yes;
+    }
+
+    public void setYes(Node yes) {
+        this.yes = yes;
+    }
+
+    public Node getNo() {
+        return no;
+    }
+
+    public void setNo(Node no) {
+        this.no = no;
+    }
+
     public byte[] getBytes() {
         byte[] result = new byte[RECORD_SIZE];
         byte[] idBytes = new byte[NODE_ID_SIZE];
-        byte[] parentBytes = new byte[NODE_SIZE];
-        byte[] yesBytes = new byte[NODE_SIZE];
-        byte[] noBytes = new byte[NODE_SIZE];
+        byte[] parentBytes = new byte[NODE_ID_SIZE];
+        byte[] yesBytes = new byte[NODE_ID_SIZE];
+        byte[] noBytes = new byte[NODE_ID_SIZE];
         byte[] nodeDataBytes = new byte[NodeData.RECORD_SIZE];
 
         System.arraycopy(id.toString().getBytes(),0,idBytes,0,id.toString().getBytes().length);
@@ -60,11 +84,11 @@ public class Node {
         if(yes != null) System.arraycopy(yes.getBytes(),0,yesBytes,0,yes.getBytes().length);
         System.arraycopy(nodeData.getBytes(),0,nodeDataBytes,0,nodeData.getBytes().length);
 
-        System.arraycopy(idBytes,0,result,0,idBytes.length);
+        System.arraycopy(idBytes, 0, result, 0, idBytes.length);
         System.arraycopy(parentBytes,0,result,NODE_ID_SIZE,parentBytes.length);
-        System.arraycopy(yesBytes,0,result,NODE_ID_SIZE+NODE_SIZE,yesBytes.length);
-        System.arraycopy(noBytes,0,result,NODE_ID_SIZE+NODE_SIZE*2,noBytes.length);
-        System.arraycopy(nodeDataBytes,0,result,NODE_ID_SIZE+NODE_SIZE*3,nodeDataBytes.length);;
+        System.arraycopy(yesBytes,0,result,NODE_ID_SIZE*2,yesBytes.length);
+        System.arraycopy(noBytes,0,result,NODE_ID_SIZE*3,noBytes.length);
+        System.arraycopy(nodeDataBytes,0,result,NODE_ID_SIZE*4,nodeDataBytes.length);;
 
         return result;
     }
