@@ -50,9 +50,10 @@ public class Database {
 //                    node3.getNodeData().setCelebrity("SOME NEW CELEB");
 //                    update(node3);
                 } else {
+                    recordCount = new Long(db.length() / Node.RECORD_SIZE).intValue();
                     // Update record count to the id of the last saved node
-                    Integer id = readNodeId(0);
-                    recordCount = id + 1;
+//                    Integer id = readNodeId(0);
+//                    recordCount = id + 1;
                 }
                 readNode(1);
 
