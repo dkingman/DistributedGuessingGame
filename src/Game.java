@@ -16,6 +16,7 @@ public class Game implements Runnable {
     }
 
     public void playGame() {
+        //TODO check if inetAddress has been seen before and display a message telling them if any of there answers have been guessed by others
 //        User user = new User(socket.getInetAddress(), "Player");
 //        NodeData nodeData = new NodeData(user);
 //        Node root = new Node(nodeData);
@@ -25,7 +26,7 @@ public class Game implements Runnable {
         System.out.println("What is your name?");
         try {
             String response = bufferedReader.readLine();
-            user = new User("192.111.111:6001", response);
+            user = new User("192.111.111:6001", response); //TODO fill in first param with real address ie. "inetAddress.toString()"
         } catch (IOException e) {
             e.printStackTrace();
         }
