@@ -6,14 +6,14 @@ import java.net.InetAddress;
  * Time: 10:21 PM
  */
 public class User {
-    private InetAddress inetAddress;
+    private String inetAddress;
     private String name;
 
-    private static final int INET_ADDRESS_SIZE   = 40; // Find the correct size of the toString of an InetAddress
-    private static final int USERNAME_SIZE   = 40;
+    public static final int INET_ADDRESS_SIZE   = 40; // Find the correct size of the toString of an InetAddress
+    public static final int USERNAME_SIZE   = 40;
     public static final int RECORD_SIZE = INET_ADDRESS_SIZE + USERNAME_SIZE;
 
-    public User(InetAddress inetAddress, String name) {
+    public User(String inetAddress, String name) {
         this.inetAddress = inetAddress;
         this.name = name;
     }
