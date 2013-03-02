@@ -33,20 +33,24 @@ public class Game implements Runnable {
             e.printStackTrace();
         }
 
-        System.out.println("Would you like to play a celebrity guessing game?");
         while(true) {
-            try {
-                String response = bufferedReader.readLine();
-                if(answeredYes(response)) {
-                    Node node = db.readNode(1);
-                    play(node, bufferedReader);
-                    break;
-                } else {
+            System.out.println("Would you like to play a celebrity guessing game?");
+            while(true) {
+                try {
+                    String response = bufferedReader.readLine();
+                    if(answeredYes(response)) {
+                        Node node = db.readNode(1);
+                        play(node, bufferedReader);
+                        break;
+                    } else if (answeredNo(response)) {
+                        return;
+                    } else{
+                        printIncomprehensibleResponse();
+                    }
+                } catch (IOException e) {
                     printIncomprehensibleResponse();
+                    e.printStackTrace();
                 }
-            } catch (IOException e) {
-                printIncomprehensibleResponse();
-                e.printStackTrace();
             }
         }
     }
@@ -64,7 +68,7 @@ public class Game implements Runnable {
                         System.out.println("I knew it!");
                         break;
                     } else if(answeredNo(response)) {
-
+                        play(db.readNode(node.getId()),bufferedReader);
                         break;
                     } else {
                         printIncomprehensibleResponse();
@@ -81,12 +85,10 @@ public class Game implements Runnable {
                 try {
                     response = bufferedReader.readLine();
                     if(answeredYes(response)) {
-                          //get left node first from db
-//                        play(node.getYes(),bufferedReader);
+                        play(db.readNode(node.getYes()),bufferedReader);
                         break;
                     } else if (answeredNo(response)) {
-                        // get right node first from db
-//                        play(node.getNo(),bufferedReader);
+                        play(db.readNode(node.getNo()),bufferedReader);
                         break;
                     } else {
                         printIncomprehensibleResponse();
