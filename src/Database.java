@@ -36,18 +36,19 @@ public class Database {
                 if(db.length() == 0) {
                     db.close();
                     User user = new User(null,"Initial User");
-                    NodeData nodeData = new NodeData(user, null, "Barrack Obama");
+                    NodeData nodeData = new NodeData(user, "Is your celebrity the president of the United States?", null);
                     Node node = new Node(null,null,null,nodeData,Database.recordCount);
-                    User user2 = new User(null,"User2");
-                    NodeData nodeData2 = new NodeData(user, null, "Adam Sandler");
-                    Node node2 = new Node(null,null,null,nodeData2,Database.recordCount+1);
+                    User user2 = new User(null,"Initial User");
+                    NodeData nodeData2 = new NodeData(user2, null, "Barrack Obama");
+                    Node node2 = new Node(node.getId(),null,null,nodeData2,++Database.recordCount);
+                    node.setYes(node2.getId());
                     write(node);
                     write(node2);
-                    node.setParent(node2.getId());
-                    update(node);
-                    Node node3 = readNode(node2.getId());
-                    node3.getNodeData().setCelebrity("SOME NEW CELEB");
-                    update(node3);
+//                    node.setParent(node2.getId());
+//                    update(node);
+//                    Node node3 = readNode(node2.getId());
+//                    node3.getNodeData().setCelebrity("SOME NEW CELEB");
+//                    update(node3);
                 } else {
                     // Update record count to the id of the last saved node
                     Integer id = readNodeId(0);
@@ -79,7 +80,7 @@ public class Database {
     public void update(Node node) {
         try {
             db = new RandomAccessFile(dbDir, "rws");
-            db.seek((node.getId() - 1) * recordCount);
+            db.seek((node.getId() - 1) * Node.RECORD_SIZE);
             db.write(node.getBytes());
             db.close();
         } catch (IOException e) {

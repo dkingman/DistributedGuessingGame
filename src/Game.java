@@ -6,9 +6,11 @@ public class Game implements Runnable {
     private DataInputStream inFromClient;
     private DataOutputStream  outToClient;
     private Socket s;
+    private Database db;
 
     public Game(Socket s) throws IOException {
         this.s = s;
+        db = new Database();
     }
     
     public void run() {
@@ -21,13 +23,23 @@ public class Game implements Runnable {
 //        Node root = new Node(nodeData);
         Database db = new Database();
         db.initDb();
-        System.out.println("Would you like to play a celebrity guessing game?");
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
+        System.out.println("What is your name?");
+        User user = null;
+        try {
+            String response = bufferedReader.readLine();
+            user = new User("192.111.111:6001", response);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println("Would you like to play a celebrity guessing game?");
         while(true) {
             try {
                 String response = bufferedReader.readLine();
                 if(answeredYes(response)) {
-                    play(new Node(), bufferedReader);
+                    Node node = db.readNode(1);
+                    play(node, bufferedReader);
                     break;
                 } else {
                     printIncomprehensibleResponse();
@@ -43,7 +55,7 @@ public class Game implements Runnable {
         String response = null;
         String celebrity = node.getNodeData().getCelebrity();
         String question = node.getNodeData().getQuestion();
-        if(celebrity != null) {
+        if(!celebrity.trim().isEmpty()) {
             do {
                 System.out.println(new StringBuilder().append("Is the celebrity you are thinking of ").append(celebrity).append("?").toString());
                 try {
@@ -63,7 +75,7 @@ public class Game implements Runnable {
             }
             while(true);
         }
-        else if(question != null) {
+        else if(!question.trim().isEmpty()) {
             System.out.println(question);
             do {
                 try {
@@ -92,10 +104,10 @@ public class Game implements Runnable {
     }
 
     private boolean answeredYes(String answer) {
-        return answer.toLowerCase().equals('y') || answer.toLowerCase().equals("yes");
+        return answer.trim().toLowerCase().equals("y") || answer.trim().toLowerCase().equals("yes");
     }
 
     private boolean answeredNo(String answer) {
-        return answer.toLowerCase().equals('n') || answer.toLowerCase().equals("no");
+        return answer.trim().toLowerCase().equals("n") || answer.trim().toLowerCase().equals("no");
     }
 }
