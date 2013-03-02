@@ -36,14 +36,14 @@ public class Database {
                 if(db.length() == 0) {
                     db.close();
                     User user = new User(null,"Initial User");
-                    NodeData nodeData = new NodeData(user, "Is your celebrity the president of the United States?", null);
+                    NodeData nodeData = new NodeData(user,null,"Barrack Obama");
                     Node node = new Node(null,null,null,nodeData,Database.recordCount);
-                    User user2 = new User(null,"Initial User");
-                    NodeData nodeData2 = new NodeData(user2, null, "Barrack Obama");
-                    Node node2 = new Node(node.getId(),null,null,nodeData2,++Database.recordCount);
-                    node.setYes(node2.getId());
+//                    User user2 = new User(null,"Initial User");
+//                    NodeData nodeData2 = new NodeData(user2, null, "Barrack Obama");
+//                    Node node2 = new Node(node.getId(),null,null,nodeData2,++Database.recordCount);
+//                    node.setYes(node2.getId());
                     write(node);
-                    write(node2);
+//                    write(node2);
 //                    node.setParent(node2.getId());
 //                    update(node);
 //                    Node node3 = readNode(node2.getId());

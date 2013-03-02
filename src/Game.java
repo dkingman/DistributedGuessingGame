@@ -7,6 +7,7 @@ public class Game implements Runnable {
     private DataOutputStream  outToClient;
     private Socket s;
     private Database db;
+    private User user;
 
     public Game(Socket s) throws IOException {
         this.s = s;
@@ -25,7 +26,6 @@ public class Game implements Runnable {
         db.initDb();
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
         System.out.println("What is your name?");
-        User user = null;
         try {
             String response = bufferedReader.readLine();
             user = new User("192.111.111:6001", response);
@@ -68,7 +68,34 @@ public class Game implements Runnable {
                         System.out.println("I knew it!");
                         break;
                     } else if(answeredNo(response)) {
-                        play(db.readNode(node.getId()),bufferedReader);
+                        System.out.println("Who are you thinking of?");
+                        String celeb = bufferedReader.readLine();
+                        System.out.println(new StringBuilder().append("Ask a yes/no question that would distinguish between").append(node.getNodeData().getCelebrity()).append(" and ").append(celeb).toString());
+                        String quest = bufferedReader.readLine();
+                        NodeData nodeDataCeleb = new NodeData(user,null,celeb);
+                        NodeData nodeDataQuestion = new NodeData(user,quest,null);
+                        System.out.println(new StringBuilder("Would an answer of yes indicate ").append(celeb));
+                        Node questionNode = new Node(null,null,null,nodeDataQuestion, ++Database.recordCount);
+                        Node newCelebNode = new Node(questionNode.getId(),null,null,nodeDataCeleb,++Database.recordCount);
+                        node.setParent(questionNode.getId());
+
+                        while(true){
+                        response = bufferedReader.readLine();
+                            if(answeredYes(response)) {
+                                questionNode.setYes(newCelebNode.getId());
+                                questionNode.setNo(node.getId());
+                                break;
+                            } else if (answeredNo(response)) {
+                                questionNode.setYes(node.getId());
+                                questionNode.setNo(newCelebNode.getId());
+                                break;
+                            } else {
+                                printIncomprehensibleResponse();
+                            }
+                        }
+                        db.update(node);
+                        db.write(questionNode);
+                        db.write(newCelebNode);
                         break;
                     } else {
                         printIncomprehensibleResponse();
@@ -88,8 +115,12 @@ public class Game implements Runnable {
                         play(db.readNode(node.getYes()),bufferedReader);
                         break;
                     } else if (answeredNo(response)) {
-                        play(db.readNode(node.getNo()),bufferedReader);
-                        break;
+                        if(node.getNo() != null && node.getNo().compareTo(0) != 0) {
+                            play(db.readNode(node.getNo()),bufferedReader);
+                            break;
+                        }
+
+
                     } else {
                         printIncomprehensibleResponse();
                     }
@@ -99,6 +130,10 @@ public class Game implements Runnable {
             }
             while(true);
         }
+    }
+
+    private void isNodeEmpty(Node node) {
+//        return (node)
     }
 
     private void printIncomprehensibleResponse() {
