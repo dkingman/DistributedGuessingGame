@@ -1,8 +1,4 @@
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.RandomAccessFile;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -14,7 +10,7 @@ public class Main {
 	
 //	        while(true) {
 		        Socket connectionSocket = null;
-			    //connectionSocket = welcomeSocket.accept();
+			    connectionSocket = welcomeSocket.accept();
 	            Game game = new Game(connectionSocket);
 	            Thread t = new Thread(game);
 	            t.start();

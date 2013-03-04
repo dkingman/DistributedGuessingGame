@@ -1,5 +1,9 @@
-import java.io.*;
-import java.net.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.net.Socket;
 
 public class Game implements Runnable {
     private Socket s;
@@ -22,9 +26,14 @@ public class Game implements Runnable {
 //        Node root = new Node(nodeData);
         Database db = new Database();
         db.initDb();
-        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
-        System.out.println("What is your name?");
+  
         try {
+        	BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(s.getInputStream()));
+			BufferedWriter w = new BufferedWriter(new OutputStreamWriter(s.getOutputStream()));
+			w.write("What is your name?");
+			w.newLine();
+            w.flush();
+            
             String response = bufferedReader.readLine();
             user = new User("192.111.111:6001", response); //TODO fill in first param with real address ie. "inetAddress.toString()"
         } catch (IOException e) {
@@ -32,9 +41,14 @@ public class Game implements Runnable {
         }
 
         while(true) {
-            System.out.println("Would you like to play a celebrity guessing game?");
             while(true) {
                 try {
+                	BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(s.getInputStream()));
+        			BufferedWriter w = new BufferedWriter(new OutputStreamWriter(s.getOutputStream()));
+        			w.write("Would you like to play a celebrity guessing game?");
+        			w.newLine();
+                    w.flush();
+                	
                     String response = bufferedReader.readLine();
                     if(answeredYes(response)) {
                         Node node;
@@ -61,20 +75,34 @@ public class Game implements Runnable {
         String question = node.getNodeData().getQuestion();
         if(!celebrity.trim().isEmpty()) {
             do {
-                System.out.println(new StringBuilder().append("Is the celebrity you are thinking of ").append(celebrity).append("?").toString());
+                //System.out.println(new StringBuilder().append("Is the celebrity you are thinking of ").append(celebrity).append("?").toString());
                 try {
+                	bufferedReader = new BufferedReader(new InputStreamReader(s.getInputStream()));
+        			BufferedWriter w = new BufferedWriter(new OutputStreamWriter(s.getOutputStream()));
+        			w.write(new StringBuilder().append("Is the celebrity you are thinking of ").append(celebrity).append("?").toString());
+        			w.newLine();
+                    w.flush();
+                    
                     response = bufferedReader.readLine();
                     if(answeredYes(response)) {
-                        System.out.println("I knew it!");
+            			w.write("I knew it!");
+            			w.newLine();
+                        w.flush();
                         break;
                     } else if(answeredNo(response)) {
-                        System.out.println("Who are you thinking of?");
+            			w.write("Who are you thinking of?");
+            			w.newLine();
+                        w.flush();
                         String celeb = bufferedReader.readLine();
-                        System.out.println(new StringBuilder().append("Ask a yes/no question that would distinguish between ").append(node.getNodeData().getCelebrity()).append(" and ").append(celeb).toString());
+            			w.write(new StringBuilder().append("Ask a yes/no question that would distinguish between ").append(node.getNodeData().getCelebrity()).append(" and ").append(celeb).toString());
+            			w.newLine();
+                        w.flush();
                         String quest = bufferedReader.readLine();
                         NodeData nodeDataCeleb = new NodeData(user,null,celeb);
                         NodeData nodeDataQuestion = new NodeData(user,quest,null);
-                        System.out.println(new StringBuilder("Would an answer of yes indicate ").append(celeb));
+            			w.write(new StringBuilder("Would an answer of yes indicate ").append(celeb).toString());
+            			w.newLine();
+                        w.flush();
                         Node newCelebNode = new Node(null,null,null,nodeDataCeleb,++Database.recordCount);
                         Node questionNode = new Node(null,null,null,nodeDataQuestion, ++Database.recordCount);
                         newCelebNode.setParent(questionNode.getId());
@@ -126,7 +154,15 @@ public class Game implements Runnable {
             while(true);
         }
         else if(!question.trim().isEmpty()) {
-            System.out.println(question);
+			try {
+				BufferedWriter w = new BufferedWriter(new OutputStreamWriter(s.getOutputStream()));
+				w.write(question);
+				w.newLine();
+		        w.flush();
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
             do {
                 try {
                     response = bufferedReader.readLine();
@@ -150,7 +186,16 @@ public class Game implements Runnable {
     }
 
     private void printIncomprehensibleResponse() {
-        System.out.println("Didn't understand response, please try again.");
+		BufferedWriter w;
+		try {
+			w = new BufferedWriter(new OutputStreamWriter(s.getOutputStream()));
+			w.write("Didn't understand response, please try again.");
+			w.newLine();
+	        w.flush();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
     }
 
     private boolean answeredYes(String answer) {
