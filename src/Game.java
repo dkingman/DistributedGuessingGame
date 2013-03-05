@@ -7,12 +7,11 @@ import java.net.Socket;
 
 public class Game implements Runnable {
     private Socket s;
-    private Database db;
+    private static Database db = new Database();
     private User user;
 
     public Game(Socket s) throws IOException {
         this.s = s;
-        db = new Database();
     }
     
     public void run() {
@@ -72,43 +71,45 @@ public class Game implements Runnable {
 
     private  void play(Node node, BufferedReader bufferedReader) {
         String response;
-        String celebrity = node.getNodeData().getCelebrity();
         String question = node.getNodeData().getQuestion();
-        if(!celebrity.trim().isEmpty()) {
-        	while(true) {
-                //System.out.println(new StringBuilder().append("Is the celebrity you are thinking of ").append(celebrity).append("?").toString());
-                try {
-                	bufferedReader = new BufferedReader(new InputStreamReader(s.getInputStream()));
-        			BufferedWriter w = new BufferedWriter(new OutputStreamWriter(s.getOutputStream()));
-        			w.write(new StringBuilder().append("Is the celebrity you are thinking of ").append(celebrity).append("?").toString());
-        			w.newLine();
-                    w.flush();
-                    
-                    response = bufferedReader.readLine();
-                    if(answeredYes(response)) {
-            			w.write("I knew it!");
-            			w.newLine();
+        synchronized (db) {
+            String celebrity = node.getNodeData().getCelebrity();
+            if(!celebrity.trim().isEmpty()) {
+                while(true) {
+                    //System.out.println(new StringBuilder().append("Is the celebrity you are thinking of ").append(celebrity).append("?").toString());
+                    try {
+                        bufferedReader = new BufferedReader(new InputStreamReader(s.getInputStream()));
+                        BufferedWriter w = new BufferedWriter(new OutputStreamWriter(s.getOutputStream()));
+                        w.write(new StringBuilder().append("Is the celebrity you are thinking of ").append(celebrity).append("?").toString());
+                        w.newLine();
                         w.flush();
-                        break;
-                    } else if(answeredNo(response)) {
-                    	
-             //*********
-            			w.write("Who are you thinking of?");
-            			w.newLine();
-                        w.flush();
-                        addNewCeleb(response, node);
-                        break;
-             //*********           
-                        
-                    } else {
-                        printIncomprehensibleResponse();
+
+                        response = bufferedReader.readLine();
+                        if(answeredYes(response)) {
+                            w.write("I knew it!");
+                            w.newLine();
+                            w.flush();
+                            break;
+                        } else if(answeredNo(response)) {
+
+                 //*********
+                            w.write("Who are you thinking of?");
+                            w.newLine();
+                            w.flush();
+                            addNewCeleb(response, node);
+                            break;
+                 //*********
+
+                        } else {
+                            printIncomprehensibleResponse();
+                        }
+                    }  catch (IOException e1) {
+                        e1.printStackTrace();
                     }
-                }  catch (IOException e1) {
-                    e1.printStackTrace();
                 }
             }
         }
-        else if(!question.trim().isEmpty()) {
+        if(!question.trim().isEmpty()) {
 			try {
 				BufferedWriter w = new BufferedWriter(new OutputStreamWriter(s.getOutputStream()));
 				w.write(question);
@@ -121,6 +122,8 @@ public class Game implements Runnable {
             do {
                 try {
                     response = bufferedReader.readLine();
+                    // Node could be stale, update before continuing
+                    node = db.readNode(node.getId());
                     if(answeredYes(response)) {
                         play(db.readNode(node.getYes()),bufferedReader);
                         break;
