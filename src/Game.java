@@ -7,11 +7,11 @@ import java.net.Socket;
 
 public class Game implements Runnable {
     private Socket s;
-    private static final Database readDb = new Database();
-    private static final Database writeDb = new Database();
+    private static final Database db = new Database();
     private BufferedReader bufferedReader;
     private BufferedWriter w;
     private User user;
+    private static final Integer lock = new Integer(1);
 
     public Game(Socket s) throws IOException {
         this.s = s;
@@ -33,7 +33,7 @@ public class Game implements Runnable {
 //        User user = new User(socket.getInetAddress(), "Player");
 //        NodeData nodeData = new NodeData(user);
 //        Node root = new Node(nodeData);
-        writeDb.initDb();
+        db.initDb();
   
         try {
             writeAndFlush(w,"What is your name?");
@@ -52,8 +52,8 @@ public class Game implements Runnable {
                     String response = bufferedReader.readLine();
                     if(answeredYes(response)) {
                         Node node;
-                        if(Database.recordCount == 1) node = readDb.readNode(1);
-                        else node = readDb.readNode(3);
+                        if(Database.recordCount == 1) node = db.readNode(1);
+                        else node = db.readNode(3);
                         play(node);
                         break;
                     } else if (answeredNo(response)) {
@@ -72,39 +72,43 @@ public class Game implements Runnable {
 
     private void play(Node node) {
         String response;
+        String celebrity = node.getNodeData().getCelebrity();
         Integer oldParent = node.getParent();
-        synchronized (writeDb) {
-            // Node could have changed while we were waiting. See if it's parent is the same, if it isn't load the parent
-            node = readDb.readNode(node.getId());
-            if(oldParent != null && !oldParent.equals(node.getParent()) || (oldParent == null && node.getParent() != null))   {
-                node = readDb.readNode(node.getParent());
-            }
-            String celebrity = node.getNodeData().getCelebrity();
-            if(!celebrity.trim().isEmpty()) {
-                while(true) {
-                    try {
-                        writeAndFlush(w, new StringBuilder().append("Is the celebrity you are thinking of ").append(celebrity).append("?").toString());
+        if(!celebrity.trim().isEmpty()) {
+            while(true) {
+                synchronized (lock) {
+                    node = db.readNode(node.getId());
+                    // Check if the parent has changed while we were waiting for the lock
+                    if((oldParent != null && oldParent.equals(node.getParent())) || (oldParent == null && node.getParent() == null))
+                        try {
+                            writeAndFlush(w, new StringBuilder().append("Is the celebrity you are thinking of ").append(celebrity).append("?").toString());
 
-                        response = bufferedReader.readLine();
-                        if(answeredYes(response)) {
-                            w.write("I knew it!");
-                            w.newLine();
-                            w.flush();
-                            break;
-                        } else if(answeredNo(response)) {
-                            writeAndFlush(w, "Who are you thinking of?");
-                            addNewCeleb(response, node);
-                            break;
+                            response = bufferedReader.readLine();
+                            if(answeredYes(response)) {
+                                w.write("I knew it!");
+                                w.newLine();
+                                w.flush();
+                                break;
+                            } else if(answeredNo(response)) {
+                                writeAndFlush(w, "Who are you thinking of?");
+                                addNewCeleb(response, node);
+                                break;
 
-                        } else {
-                            printIncomprehensibleResponse();
+                            } else {
+                                printIncomprehensibleResponse();
+                            }
+                        }  catch (IOException e1) {
+                            e1.printStackTrace();
                         }
-                    }  catch (IOException e1) {
-                        e1.printStackTrace();
+                    // Parent changed, another node was added so we reset ourselves to the parent
+                    else {
+                        node = db.readNode(node.getParent());
+                        break;
                     }
                 }
             }
         }
+
         String question = node.getNodeData().getQuestion();
         if(!question.trim().isEmpty()) {
 			try {
@@ -117,13 +121,13 @@ public class Game implements Runnable {
                 try {
                     response = bufferedReader.readLine();
                     // Node could be stale, update before continuing
-                    node = readDb.readNode(node.getId());
+                    node = db.readNode(node.getId());
                     if(answeredYes(response)) {
-                        play(readDb.readNode(node.getYes()));
+                        play(db.readNode(node.getYes()));
                         break;
                     } else if (answeredNo(response)) {
                         if(node.getNo() != null && node.getNo().compareTo(0) != 0) {
-                            play(readDb.readNode(node.getNo()));
+                            play(db.readNode(node.getNo()));
                             break;
                         }
                     } else {
@@ -154,12 +158,12 @@ public class Game implements Runnable {
 	            if(answeredYes(response)) {
 	                if(node.getParent() != null) {
 	                    questionNode.setParent(node.getParent());
-	                    Node parentNode = readDb.readNode(node.getParent());
+	                    Node parentNode = db.readNode(node.getParent());
 	                    if(parentNode.getYes().compareTo(node.getId()) == 0)
 	                        parentNode.setYes(questionNode.getId());
 	                    else
 	                        parentNode.setNo(questionNode.getId());
-	                    writeDb.update(parentNode);
+	                    db.update(parentNode);
 	                }
 	                questionNode.setYes(newCelebNode.getId());
 	                questionNode.setNo(node.getId());
@@ -167,12 +171,12 @@ public class Game implements Runnable {
 	            } else if (answeredNo(response)) {
 	                if(node.getParent() != null) {
 	                    questionNode.setParent(node.getParent());
-	                    Node parentNode = readDb.readNode(node.getParent());
+	                    Node parentNode = db.readNode(node.getParent());
 	                    if(parentNode.getYes().compareTo(node.getId()) == 0)
 	                        parentNode.setYes(questionNode.getId());
 	                    else
 	                        parentNode.setNo(questionNode.getId());
-                        readDb.update(parentNode);
+                        db.update(parentNode);
 	                }
 	                questionNode.setYes(node.getId());
 	                questionNode.setNo(newCelebNode.getId());
@@ -182,9 +186,9 @@ public class Game implements Runnable {
 	            }
 	        }
 	        node.setParent(questionNode.getId());
-	        writeDb.update(node);
-            writeDb.write(newCelebNode);
-            writeDb.write(questionNode);
+            db.update(node);
+            db.write(newCelebNode);
+            db.write(questionNode);
         
 		} catch (IOException e) {
 			e.printStackTrace();
