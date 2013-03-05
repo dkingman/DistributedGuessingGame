@@ -14,8 +14,6 @@ public class Main {
 	            Game game = new Game(connectionSocket);
 	            Thread t = new Thread(game);
 	            t.start();
-                //t.run();
-	            //askToPlay(welcomeSocket);
 	        }
 	        
 	        } catch (IOException e) {
