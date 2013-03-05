@@ -8,7 +8,7 @@ public class Main {
         try {
 	        ServerSocket welcomeSocket = new ServerSocket(6001);
 	
-//	        while(true) {
+	        while(true) {
 		        Socket connectionSocket = null;
 			    connectionSocket = welcomeSocket.accept();
 	            Game game = new Game(connectionSocket);
@@ -16,7 +16,7 @@ public class Main {
 	            t.start();
                 //t.run();
 	            //askToPlay(welcomeSocket);
-//	        }
+	        }
 	        
 	        } catch (IOException e) {
 	            System.out.println( e + " Error");

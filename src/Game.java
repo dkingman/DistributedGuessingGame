@@ -57,6 +57,7 @@ public class Game implements Runnable {
                         play(node, bufferedReader);
                         break;
                     } else if (answeredNo(response)) {
+                    	s.close();
                         return;
                     } else{
                         printIncomprehensibleResponse();
