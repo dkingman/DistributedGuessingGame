@@ -75,7 +75,7 @@ public class Game implements Runnable {
         String celebrity = node.getNodeData().getCelebrity();
         String question = node.getNodeData().getQuestion();
         if(!celebrity.trim().isEmpty()) {
-            do {
+        	while(true) {
                 //System.out.println(new StringBuilder().append("Is the celebrity you are thinking of ").append(celebrity).append("?").toString());
                 try {
                 	bufferedReader = new BufferedReader(new InputStreamReader(s.getInputStream()));
@@ -91,60 +91,15 @@ public class Game implements Runnable {
                         w.flush();
                         break;
                     } else if(answeredNo(response)) {
+                    	
+             //*********
             			w.write("Who are you thinking of?");
             			w.newLine();
                         w.flush();
-                        String celeb = bufferedReader.readLine();
-            			w.write(new StringBuilder().append("Ask a yes/no question that would distinguish between ").append(node.getNodeData().getCelebrity()).append(" and ").append(celeb).toString());
-            			w.newLine();
-                        w.flush();
-                        String quest = bufferedReader.readLine();
-                        NodeData nodeDataCeleb = new NodeData(user,null,celeb);
-                        NodeData nodeDataQuestion = new NodeData(user,quest,null);
-            			w.write(new StringBuilder("Would an answer of yes indicate ").append(celeb).toString());
-            			w.newLine();
-                        w.flush();
-                        Node newCelebNode = new Node(null,null,null,nodeDataCeleb,++Database.recordCount);
-                        Node questionNode = new Node(null,null,null,nodeDataQuestion, ++Database.recordCount);
-                        newCelebNode.setParent(questionNode.getId());
-
-                        while(true){
-                            response = bufferedReader.readLine();
-                            if(answeredYes(response)) {
-                                if(node.getParent() != null) {
-                                    questionNode.setParent(node.getParent());
-                                    Node parentNode = db.readNode(node.getParent());
-                                    if(parentNode.getYes().compareTo(node.getId()) == 0)
-                                        parentNode.setYes(questionNode.getId());
-                                    else
-                                        parentNode.setNo(questionNode.getId());
-                                    db.update(parentNode);
-                                }
-                                questionNode.setYes(newCelebNode.getId());
-                                questionNode.setNo(node.getId());
-                                break;
-                            } else if (answeredNo(response)) {
-                                if(node.getParent() != null) {
-                                    questionNode.setParent(node.getParent());
-                                    Node parentNode = db.readNode(node.getParent());
-                                    if(parentNode.getYes().compareTo(node.getId()) == 0)
-                                        parentNode.setYes(questionNode.getId());
-                                    else
-                                        parentNode.setNo(questionNode.getId());
-                                    db.update(parentNode);
-                                }
-                                questionNode.setYes(node.getId());
-                                questionNode.setNo(newCelebNode.getId());
-                                break;
-                            } else {
-                                printIncomprehensibleResponse();
-                            }
-                        }
-                        node.setParent(questionNode.getId());
-                        db.update(node);
-                        db.write(newCelebNode);
-                        db.write(questionNode);
+                        addNewCeleb(response, node);
                         break;
+             //*********           
+                        
                     } else {
                         printIncomprehensibleResponse();
                     }
@@ -152,7 +107,6 @@ public class Game implements Runnable {
                     e1.printStackTrace();
                 }
             }
-            while(true);
         }
         else if(!question.trim().isEmpty()) {
 			try {
@@ -184,6 +138,67 @@ public class Game implements Runnable {
             }
             while(true);
         }
+    }
+    
+    private synchronized void addNewCeleb(String response, Node node){
+    	try {
+    		BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(s.getInputStream()));
+    		BufferedWriter w = new BufferedWriter(new OutputStreamWriter(s.getOutputStream()));
+	    	String celeb = bufferedReader.readLine();
+			w.write(new StringBuilder().append("Ask a yes/no question that would distinguish between ").append(node.getNodeData().getCelebrity()).append(" and ").append(celeb).toString());
+			w.newLine();
+	        w.flush();
+	        String quest = bufferedReader.readLine();
+	        NodeData nodeDataCeleb = new NodeData(user,null,celeb);
+	        NodeData nodeDataQuestion = new NodeData(user,quest,null);
+			w.write(new StringBuilder("Would an answer of yes indicate ").append(celeb).toString());
+			w.newLine();
+	        w.flush();
+	        Node newCelebNode = new Node(null,null,null,nodeDataCeleb,++Database.recordCount);
+	        Node questionNode = new Node(null,null,null,nodeDataQuestion, ++Database.recordCount);
+	        newCelebNode.setParent(questionNode.getId());
+	
+	        while(true){
+	            response = bufferedReader.readLine();
+	            if(answeredYes(response)) {
+	                if(node.getParent() != null) {
+	                    questionNode.setParent(node.getParent());
+	                    Node parentNode = db.readNode(node.getParent());
+	                    if(parentNode.getYes().compareTo(node.getId()) == 0)
+	                        parentNode.setYes(questionNode.getId());
+	                    else
+	                        parentNode.setNo(questionNode.getId());
+	                    db.update(parentNode);
+	                }
+	                questionNode.setYes(newCelebNode.getId());
+	                questionNode.setNo(node.getId());
+	                break;
+	            } else if (answeredNo(response)) {
+	                if(node.getParent() != null) {
+	                    questionNode.setParent(node.getParent());
+	                    Node parentNode = db.readNode(node.getParent());
+	                    if(parentNode.getYes().compareTo(node.getId()) == 0)
+	                        parentNode.setYes(questionNode.getId());
+	                    else
+	                        parentNode.setNo(questionNode.getId());
+	                    db.update(parentNode);
+	                }
+	                questionNode.setYes(node.getId());
+	                questionNode.setNo(newCelebNode.getId());
+	                break;
+	            } else {
+	                printIncomprehensibleResponse();
+	            }
+	        }
+	        node.setParent(questionNode.getId());
+	        db.update(node);
+	        db.write(newCelebNode);
+	        db.write(questionNode);
+        
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
     }
 
     private void printIncomprehensibleResponse() {

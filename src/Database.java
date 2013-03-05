@@ -1,10 +1,8 @@
+import static java.lang.System.getProperty;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.net.InetAddress;
-
-import static java.lang.System.getProperty;
-import static java.lang.System.in;
 
 /**
  * User: David
@@ -67,7 +65,7 @@ public class Database {
         }
     }
 
-    public void write(Node node) {
+    public synchronized void write(Node node) {
         try {
             db = new RandomAccessFile(dbDir, "rws");
             db.seek(db.length());
@@ -78,7 +76,7 @@ public class Database {
         }
     }
 
-    public void update(Node node) {
+    public synchronized void update(Node node) {
         try {
             db = new RandomAccessFile(dbDir, "rws");
             db.seek((node.getId() - 1) * Node.RECORD_SIZE);
@@ -171,10 +169,6 @@ public class Database {
     }
     private NodeData readNodeData(long nodeNum) {
         try {
-
-
-
-
             byte[] nodeDataBytes = new byte[NodeData.RECORD_SIZE];
             User user = readUser(nodeNum);
             db.seek(nodeNum * Node.RECORD_SIZE + USERNAME_OFFSET);
