@@ -7,7 +7,8 @@ import java.net.Socket;
 
 public class Game implements Runnable {
     private Socket s;
-    private static Database db = new Database();
+    private static final Database readDb = new Database();
+    private static final Database writeDb = new Database();
     private User user;
 
     public Game(Socket s) throws IOException {
@@ -72,7 +73,7 @@ public class Game implements Runnable {
     private  void play(Node node, BufferedReader bufferedReader) {
         String response;
         String question = node.getNodeData().getQuestion();
-        synchronized (db) {
+        synchronized (writeDb) {
             String celebrity = node.getNodeData().getCelebrity();
             if(!celebrity.trim().isEmpty()) {
                 while(true) {
@@ -123,13 +124,13 @@ public class Game implements Runnable {
                 try {
                     response = bufferedReader.readLine();
                     // Node could be stale, update before continuing
-                    node = db.readNode(node.getId());
+                    node = readDb.readNode(node.getId());
                     if(answeredYes(response)) {
-                        play(db.readNode(node.getYes()),bufferedReader);
+                        play(readDb.readNode(node.getYes()),bufferedReader);
                         break;
                     } else if (answeredNo(response)) {
                         if(node.getNo() != null && node.getNo().compareTo(0) != 0) {
-                            play(db.readNode(node.getNo()),bufferedReader);
+                            play(readDb.readNode(node.getNo()),bufferedReader);
                             break;
                         }
                     } else {
@@ -166,12 +167,12 @@ public class Game implements Runnable {
 	            if(answeredYes(response)) {
 	                if(node.getParent() != null) {
 	                    questionNode.setParent(node.getParent());
-	                    Node parentNode = db.readNode(node.getParent());
+	                    Node parentNode = readDb.readNode(node.getParent());
 	                    if(parentNode.getYes().compareTo(node.getId()) == 0)
 	                        parentNode.setYes(questionNode.getId());
 	                    else
 	                        parentNode.setNo(questionNode.getId());
-	                    db.update(parentNode);
+	                    writeDb.update(parentNode);
 	                }
 	                questionNode.setYes(newCelebNode.getId());
 	                questionNode.setNo(node.getId());
@@ -179,12 +180,12 @@ public class Game implements Runnable {
 	            } else if (answeredNo(response)) {
 	                if(node.getParent() != null) {
 	                    questionNode.setParent(node.getParent());
-	                    Node parentNode = db.readNode(node.getParent());
+	                    Node parentNode = readDb.readNode(node.getParent());
 	                    if(parentNode.getYes().compareTo(node.getId()) == 0)
 	                        parentNode.setYes(questionNode.getId());
 	                    else
 	                        parentNode.setNo(questionNode.getId());
-	                    db.update(parentNode);
+                        readDb.update(parentNode);
 	                }
 	                questionNode.setYes(node.getId());
 	                questionNode.setNo(newCelebNode.getId());
@@ -194,9 +195,9 @@ public class Game implements Runnable {
 	            }
 	        }
 	        node.setParent(questionNode.getId());
-	        db.update(node);
-	        db.write(newCelebNode);
-	        db.write(questionNode);
+	        writeDb.update(node);
+            writeDb.write(newCelebNode);
+            writeDb.write(questionNode);
         
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
