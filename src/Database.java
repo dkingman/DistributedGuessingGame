@@ -33,7 +33,7 @@ public class Database {
             try {
                 if(db.length() == 0) {
                     db.close();
-                    User user = new User(null,"Initial User");
+                    User user = new User(new Long(-1),"Initial User");
                     NodeData nodeData = new NodeData(user,null,"Barrack Obama");
                     Node node = new Node(null,null,null,nodeData,Database.recordCount);
 //                    User user2 = new User(null,"Initial User");
@@ -53,7 +53,7 @@ public class Database {
 //                    Integer id = readNodeId(0);
 //                    recordCount = id + 1;
                 }
-                readNode(1);
+//                readNode(1);
 
                 // Update the record count to the 1 + the last saved ID
             } catch (IOException e) {
@@ -120,7 +120,7 @@ public class Database {
 
             Integer id = Integer.parseInt(new String(idBytes).trim());
             String username = new String(usernameBytes).trim();
-            String i = new String(inetAddressBytes).toString();
+            String i = new String(inetAddressBytes).toString().trim();
             Long inetAddress = Long.valueOf(i).longValue();
             String question = new String(questionBytes).trim();
             String celebrity = new String(celebrityBytes).trim();
