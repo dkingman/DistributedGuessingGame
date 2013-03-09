@@ -33,17 +33,13 @@ public class Game implements Runnable {
             e.printStackTrace();
             return;
         }
-        //TODO check if inetAddress has been seen before and display a message telling them if any of there answers have been guessed by others
-//        User user = new User(socket.getInetAddress(), "Player");
-//        NodeData nodeData = new NodeData(user);
-//        Node root = new Node(nodeData);
+
         db.initDb();
   
         try {
             writeAndFlush(w,"What is your name?");
             String response = bufferedReader.readLine();
-            //user = new User("192.111.111:6001", response); //TODO fill in first param with real address ie. "inetAddress.toString()"
-            user = new User(Thread.currentThread().getId(), response); //TODO fill in first param with real address ie. "inetAddress.toString()"
+            user = new User(Thread.currentThread().getId(), response);
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -36,24 +36,10 @@ public class Database {
                     User user = new User(new Long(-1),"Initial User");
                     NodeData nodeData = new NodeData(user,null,"Barrack Obama");
                     Node node = new Node(null,null,null,nodeData,Database.recordCount);
-//                    User user2 = new User(null,"Initial User");
-//                    NodeData nodeData2 = new NodeData(user2, null, "Barrack Obama");
-//                    Node node2 = new Node(node.getId(),null,null,nodeData2,++Database.recordCount);
-//                    node.setYes(node2.getId());
                     write(node);
-//                    write(node2);
-//                    node.setParent(node2.getId());
-//                    update(node);
-//                    Node node3 = readNode(node2.getId());
-//                    node3.getNodeData().setCelebrity("SOME NEW CELEB");
-//                    update(node3);
                 } else {
                     recordCount = new Long(db.length() / Node.RECORD_SIZE).intValue();
-                    // Update record count to the id of the last saved node
-//                    Integer id = readNodeId(0);
-//                    recordCount = id + 1;
                 }
-//                readNode(1);
 
                 // Update the record count to the 1 + the last saved ID
             } catch (IOException e) {
@@ -143,10 +129,8 @@ public class Database {
                 Integer noId = Integer.parseInt(temp);
                 node.setNo(noId);
             }
-            //write(node);
             db.close();
             return node;
-//            return Integer.parseInt(id);
         } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -168,23 +152,4 @@ public class Database {
         return null;
 
     }
-    private NodeData readNodeData(long nodeNum) {
-        try {
-            byte[] nodeDataBytes = new byte[NodeData.RECORD_SIZE];
-            User user = readUser(nodeNum);
-            db.seek(nodeNum * Node.RECORD_SIZE + USERNAME_OFFSET);
-            db.read(nodeDataBytes,0,NodeData.QUESTION_SIZE);
-            String username = new String();
-//            NodeData nodeData = new NodeData();
-        } catch (IOException e) {
-            e.printStackTrace();
-
-        }
-        return null;
-    }
-
-    private User readUser(long nodeNum) {
-        return null;
-    }
-
 }
