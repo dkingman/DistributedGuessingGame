@@ -5,14 +5,17 @@
  * Time: 10:21 PM
  */
 public class User {
-    private String inetAddress;
+    private Long inetAddress;
+    //private String inetAddress;
+
     private String name;
 
     public static final int INET_ADDRESS_SIZE   = 40; // Find the correct size of the toString of an InetAddress
     public static final int USERNAME_SIZE   = 40;
     public static final int RECORD_SIZE = INET_ADDRESS_SIZE + USERNAME_SIZE;
 
-    public User(String inetAddress, String name) {
+    //public User(String inetAddress, String name) {
+    public User(Long inetAddress, String name) {
         this.inetAddress = inetAddress;
         this.name = name;
     }

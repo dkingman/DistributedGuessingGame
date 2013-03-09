@@ -87,7 +87,7 @@ public class Database {
         }
     }
 
-    public Node readNode(long nodeNum) {
+    public Node readNode(long nodeNum) throws NumberFormatException {
         try {
             db = new RandomAccessFile(dbDir, "rws");
             byte[] idBytes = new byte[Node.NODE_ID_SIZE];
@@ -120,7 +120,8 @@ public class Database {
 
             Integer id = Integer.parseInt(new String(idBytes).trim());
             String username = new String(usernameBytes).trim();
-            String inetAddress = new String(inetAddressBytes).trim();
+            String i = new String(inetAddressBytes).toString();
+            Long inetAddress = Long.valueOf(i).longValue();
             String question = new String(questionBytes).trim();
             String celebrity = new String(celebrityBytes).trim();
             User user = new User(inetAddress,username);

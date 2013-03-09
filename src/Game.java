@@ -4,6 +4,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
+import java.net.SocketException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
 
 public class Game implements Runnable {
     private Socket s;
@@ -12,6 +15,7 @@ public class Game implements Runnable {
     private BufferedWriter w;
     private User user;
     private static final Integer lock = new Integer(1);
+    private Lock loc;
 
     public Game(Socket s) throws IOException {
         this.s = s;
@@ -38,7 +42,8 @@ public class Game implements Runnable {
         try {
             writeAndFlush(w,"What is your name?");
             String response = bufferedReader.readLine();
-            user = new User("192.111.111:6001", response); //TODO fill in first param with real address ie. "inetAddress.toString()"
+            //user = new User("192.111.111:6001", response); //TODO fill in first param with real address ie. "inetAddress.toString()"
+            user = new User(Thread.currentThread().getId(), response); //TODO fill in first param with real address ie. "inetAddress.toString()"
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -79,10 +84,9 @@ public class Game implements Runnable {
                 synchronized (lock) {
                     node = db.readNode(node.getId());
                     // Check if the parent has changed while we were waiting for the lock
-                    if((oldParent != null && oldParent.equals(node.getParent())) || (oldParent == null && node.getParent() == null))
+                    if((oldParent != null && oldParent.equals(node.getParent())) || (oldParent == null && node.getParent() == null)){
                         try {
                             writeAndFlush(w, new StringBuilder().append("Is the celebrity you are thinking of ").append(celebrity).append("?").toString());
-
                             response = bufferedReader.readLine();
                             if(answeredYes(response)) {
                                 w.write("I knew it!");
@@ -101,7 +105,7 @@ public class Game implements Runnable {
                             e1.printStackTrace();
                         }
                     // Parent changed, another node was added so we reset ourselves to the parent
-                    else {
+                    }else {
                         node = db.readNode(node.getParent());
                         break;
                     }
