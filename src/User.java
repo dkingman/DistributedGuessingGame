@@ -5,7 +5,7 @@
  * Time: 10:21 PM
  */
 public class User {
-    private Long inetAddress;
+    private Long threadId;
     //private String inetAddress;
 
     private String name;
@@ -15,8 +15,8 @@ public class User {
     public static final int RECORD_SIZE = INET_ADDRESS_SIZE + USERNAME_SIZE;
 
     //public User(String inetAddress, String name) {
-    public User(Long inetAddress, String name) {
-        this.inetAddress = inetAddress;
+    public User(Long threadId, String name) {
+        this.threadId = threadId;
         this.name = name;
     }
 
@@ -24,15 +24,15 @@ public class User {
         byte[] result = new byte[RECORD_SIZE];
 
         byte[] nameBytes = new byte[USERNAME_SIZE];
-        byte[] inetAddressBytes = new byte[INET_ADDRESS_SIZE];
+        byte[] threadIdBytes = new byte[INET_ADDRESS_SIZE];
 
         System.arraycopy(name.getBytes(),0,nameBytes,0,name.getBytes().length);
-        if(inetAddress != null) {
-            System.arraycopy(inetAddress.toString().getBytes(),0,inetAddressBytes,0,inetAddress.toString().getBytes().length);
+        if(threadId != null) {
+            System.arraycopy(threadId.toString().getBytes(),0,threadIdBytes,0,threadId.toString().getBytes().length);
         }
         System.out.println(new String(nameBytes));
         System.arraycopy(nameBytes,0,result,0,nameBytes.length);
-        System.arraycopy(inetAddressBytes,0,result,USERNAME_SIZE,inetAddressBytes.length);
+        System.arraycopy(threadIdBytes,0,result,USERNAME_SIZE,threadIdBytes.length);
 
         return result;
     }

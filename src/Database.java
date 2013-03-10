@@ -95,7 +95,7 @@ public class Database {
             byte[] yesIdBytes = new byte[Node.NODE_ID_SIZE];
             byte[] noIdBytes = new byte[Node.NODE_ID_SIZE];
             byte[] usernameBytes = new byte[User.USERNAME_SIZE];
-            byte[] inetAddressBytes = new byte[User.INET_ADDRESS_SIZE];
+            byte[] threadIdBytes = new byte[User.INET_ADDRESS_SIZE];
             byte[] questionBytes = new byte[NodeData.QUESTION_SIZE];
             byte[] celebrityBytes = new byte[NodeData.CELEBRITY_NAME_SIZE];
 
@@ -112,7 +112,7 @@ public class Database {
             db.seek(recordOffset + USERNAME_OFFSET);
             db.read(usernameBytes,0,User.USERNAME_SIZE);
             db.seek(recordOffset + INETADDRESS_OFFSET);
-            db.read(inetAddressBytes,0,User.INET_ADDRESS_SIZE);
+            db.read(threadIdBytes,0,User.INET_ADDRESS_SIZE);
             db.seek(recordOffset + QUESTION_OFFSET);
             db.read(questionBytes,0,NodeData.QUESTION_SIZE);
             db.seek(recordOffset + CELEBRITY_OFFSET);
@@ -120,11 +120,11 @@ public class Database {
 
             Integer id = Integer.parseInt(new String(idBytes).trim());
             String username = new String(usernameBytes).trim();
-            String i = new String(inetAddressBytes).toString().trim();
-            Long inetAddress = Long.valueOf(i).longValue();
+            String i = new String(threadIdBytes).toString().trim();
+            Long threadId = Long.valueOf(i).longValue();
             String question = new String(questionBytes).trim();
             String celebrity = new String(celebrityBytes).trim();
-            User user = new User(inetAddress,username);
+            User user = new User(threadId,username);
             NodeData nodeData = new NodeData(user,question,celebrity);
             Node node = new Node(null,null,null,nodeData,id);
 
