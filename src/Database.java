@@ -25,7 +25,6 @@ public class Database {
     public Database() {
         String currDir = getProperty("user.dir");
         dbDir = currDir + "\\database\\database.txt";
-        System.out.println(dbDir);
     }
     public void initDb() {
         try {
@@ -33,7 +32,7 @@ public class Database {
             try {
                 if(db.length() == 0) {
                     db.close();
-                    User user = new User(new Long(-1),"Initial User");
+                    User user = new User("-1","Initial User");
                     NodeData nodeData = new NodeData(user,null,"Barrack Obama");
                     Node node = new Node(null,null,null,nodeData,Database.recordCount);
                     write(node);
@@ -41,7 +40,6 @@ public class Database {
                     recordCount = new Long(db.length() / Node.RECORD_SIZE).intValue();
                 }
 
-                // Update the record count to the 1 + the last saved ID
             } catch (IOException e) {
                 e.printStackTrace();
 
@@ -81,7 +79,7 @@ public class Database {
             byte[] yesIdBytes = new byte[Node.NODE_ID_SIZE];
             byte[] noIdBytes = new byte[Node.NODE_ID_SIZE];
             byte[] usernameBytes = new byte[User.USERNAME_SIZE];
-            byte[] threadIdBytes = new byte[User.INET_ADDRESS_SIZE];
+            byte[] inetAddressIdBytes = new byte[User.INET_ADDRESS_SIZE];
             byte[] questionBytes = new byte[NodeData.QUESTION_SIZE];
             byte[] celebrityBytes = new byte[NodeData.CELEBRITY_NAME_SIZE];
 
@@ -98,7 +96,7 @@ public class Database {
             db.seek(recordOffset + USERNAME_OFFSET);
             db.read(usernameBytes,0,User.USERNAME_SIZE);
             db.seek(recordOffset + INETADDRESS_OFFSET);
-            db.read(threadIdBytes,0,User.INET_ADDRESS_SIZE);
+            db.read(inetAddressIdBytes,0,User.INET_ADDRESS_SIZE);
             db.seek(recordOffset + QUESTION_OFFSET);
             db.read(questionBytes,0,NodeData.QUESTION_SIZE);
             db.seek(recordOffset + CELEBRITY_OFFSET);
@@ -106,11 +104,10 @@ public class Database {
 
             Integer id = Integer.parseInt(new String(idBytes).trim());
             String username = new String(usernameBytes).trim();
-            String i = new String(threadIdBytes).toString().trim();
-            Long threadId = Long.valueOf(i).longValue();
+            String inetAddress = new String(inetAddressIdBytes).toString().trim();
             String question = new String(questionBytes).trim();
             String celebrity = new String(celebrityBytes).trim();
-            User user = new User(threadId,username);
+            User user = new User(inetAddress ,username);
             NodeData nodeData = new NodeData(user,question,celebrity);
             Node node = new Node(null,null,null,nodeData,id);
 

@@ -1,12 +1,6 @@
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
+import java.io.*;
 import java.net.Socket;
-import java.net.SocketException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Lock;
+import java.util.*;
 
 public class Game implements Runnable {
     private Socket s;
@@ -15,7 +9,7 @@ public class Game implements Runnable {
     private BufferedWriter w;
     private User user;
     private static final Integer lock = new Integer(1);
-    private Lock loc;
+    private Set<String> myCelebs = Collections.synchronizedSet(new HashSet<String>());
 
     public Game(Socket s) throws IOException {
         this.s = s;
@@ -37,9 +31,9 @@ public class Game implements Runnable {
         db.initDb();
   
         try {
-            writeAndFlush(w,"What is your name?");
+            writeAndFlush("What is your name?");
             String response = bufferedReader.readLine();
-            user = new User(Thread.currentThread().getId(), response);
+            user = new User(s.getInetAddress().toString()+s.getPort(), response);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -48,7 +42,7 @@ public class Game implements Runnable {
             while(true) {
                 try {
 
-                    writeAndFlush(w, "Would you like to play a celebrity guessing game?");
+                    writeAndFlush("Would you like to play a celebrity guessing game?");
                 	
                     String response = bufferedReader.readLine();
                     if(answeredYes(response)) {
@@ -82,15 +76,14 @@ public class Game implements Runnable {
                     // Check if the parent has changed while we were waiting for the lock
                     if((oldParent != null && oldParent.equals(node.getParent())) || (oldParent == null && node.getParent() == null)){
                         try {
-                            writeAndFlush(w, new StringBuilder().append("Is the celebrity you are thinking of ").append(celebrity).append("?").toString());
+                            writeAndFlush(new StringBuilder().append("Is the celebrity you are thinking of ").append(celebrity).append("?").toString());
                             response = bufferedReader.readLine();
                             if(answeredYes(response)) {
-                                w.write("I knew it!");
-                                w.newLine();
-                                w.flush();
+                                writeAndFlush("I knew it!");
+                                addMessage(celebrity);
                                 break;
                             } else if(answeredNo(response)) {
-                                writeAndFlush(w, "Who are you thinking of?");
+                                writeAndFlush("Who are you thinking of?");
                                 addNewCeleb(response, node);
                                 break;
 
@@ -113,7 +106,7 @@ public class Game implements Runnable {
         if(!question.trim().isEmpty()) {
 			try {
 				BufferedWriter w = new BufferedWriter(new OutputStreamWriter(s.getOutputStream()));
-                writeAndFlush(w, question);
+                writeAndFlush(question);
 			} catch (IOException e1) {
 				e1.printStackTrace();
 			}
@@ -140,19 +133,20 @@ public class Game implements Runnable {
             while(true);
         }
     }
-    
+
     private void addNewCeleb(String response, Node node){
     	try {
 	    	String celeb = bufferedReader.readLine();
-            writeAndFlush(w, new StringBuilder().append("Ask a yes/no question that would distinguish between ").append(node.getNodeData().getCelebrity()).append(" and ").append(celeb).toString());
+            writeAndFlush(new StringBuilder().append("Ask a yes/no question that would distinguish between ").append(node.getNodeData().getCelebrity()).append(" and ").append(celeb).toString());
 	        String quest = bufferedReader.readLine();
 	        NodeData nodeDataCeleb = new NodeData(user,null,celeb);
 	        NodeData nodeDataQuestion = new NodeData(user,quest,null);
-            writeAndFlush(w, new StringBuilder("Would an answer of yes indicate ").append(celeb).toString());
+
+            writeAndFlush(new StringBuilder("Would an answer of yes indicate ").append(celeb).toString());
 	        Node newCelebNode = new Node(null,null,null,nodeDataCeleb,++Database.recordCount);
 	        Node questionNode = new Node(null,null,null,nodeDataQuestion, ++Database.recordCount);
 	        newCelebNode.setParent(questionNode.getId());
-	
+
 	        while(true){
 	            response = bufferedReader.readLine();
 	            if(answeredYes(response)) {
@@ -185,21 +179,69 @@ public class Game implements Runnable {
 	                printIncomprehensibleResponse();
 	            }
 	        }
+
+            addCurrentCeleb(celeb);
 	        node.setParent(questionNode.getId());
             db.update(node);
             db.write(newCelebNode);
             db.write(questionNode);
-        
+
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+    }
+
+    private void addCurrentCeleb(String celeb) {
+        myCelebs.add(celeb);
+        Main.celebsCreated.put(getIpAndPortString(), myCelebs);
+    }
+
+    private void addMessage(String celeb) {
+        Set<String> set = Main.celebsGuessedbyUsers.get(celeb);
+        if(set == null) set = Collections.synchronizedSet(new HashSet<String>());
+        if(!isMyCelebrity(celeb)) {
+            set.add(user.getName());
+            Main.celebsGuessedbyUsers.put(celeb, set);
+        }
+    }
+
+    private boolean isMyCelebrity(String celeb) {
+        return myCelebs.contains(celeb);
+    }
+
+    private Map<String,String> checkForMessages() {
+        Map<String,String> result = Collections.synchronizedMap(new HashMap<String, String>());
+        for(String celeb : myCelebs) {
+            Set<String> set = Main.celebsGuessedbyUsers.get(celeb);
+            if(set != null) {
+                for(String userWhoGuessed : set) {
+                    result.put(userWhoGuessed, celeb);
+                    set.remove(userWhoGuessed);
+                }
+                Main.celebsGuessedbyUsers.put(celeb, set);
+            }
+        }
+        return result;
+    }
+
+    private void printMessages(Map<String,String> messages) {
+        for(String userWhoGuessed : messages.keySet()) {
+            try {
+                w.write(userWhoGuessed + " guessed " + messages.get(userWhoGuessed));
+                w.newLine();
+                w.flush();
+            } catch (IOException e) {
+                e.printStackTrace();
+
+            }
+        }
     }
 
     private void printIncomprehensibleResponse() {
 		BufferedWriter w;
 		try {
 			w = new BufferedWriter(new OutputStreamWriter(s.getOutputStream()));
-            writeAndFlush(w, "Didn't understand response, please try again.");
+            writeAndFlush("Didn't understand response, please try again.");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -213,13 +255,18 @@ public class Game implements Runnable {
         return answer.trim().toLowerCase().equals("n") || answer.trim().toLowerCase().equals("no");
     }
 
-    private void writeAndFlush(BufferedWriter bufferedWriter, String toWrite) {
+    private void writeAndFlush(String toWrite) {
+        printMessages(checkForMessages());
         try {
-            bufferedWriter.write(toWrite);
-            bufferedWriter.newLine();
-            bufferedWriter.flush();
+            w.write(toWrite);
+            w.newLine();
+            w.flush();
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private String getIpAndPortString() {
+        return s.getInetAddress().toString()+s.getPort();
     }
 }
